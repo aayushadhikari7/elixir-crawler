@@ -18,6 +18,9 @@ defmodule Crawler.MixProject do
   end
 
   defp deps do
-    []
+    [
+      {:req, "~> 0.4"},
+      {:floki, "~> 0.36"}
+    ]
   end
 end
