@@ -19,6 +19,10 @@ defmodule Crawler do
     Crawler.Coordinator.crawl(start_url, max_depth)
   end
 
+  def crawl_polite(start_url, opts \\ []) do
+    Crawler.Polite.crawl(start_url, opts)
+  end
+
   def receive_result(timeout \\ 5000) do
     receive do
       {:crawl_result, url, result} -> {url, result}
