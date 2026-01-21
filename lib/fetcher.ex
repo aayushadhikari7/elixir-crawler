@@ -1,26 +1,44 @@
 defmodule Crawler.Fetcher do
-  def fetch(url) do
-    case Req.get(url) do
-      {:ok, %{status: 200, body: body}} ->
-        links = extract_links(body, url)
-        {:ok, links}
+  def fetch(url, opts \\ []) do
+    timeout = Keyword.get(opts, :timeout, 10_000)
 
-      {:ok, %{status: status}} ->
-        {:error, "HTTP #{status}"}
+    try do
+      case Req.get(url, receive_timeout: timeout) do
+        {:ok, %{status: status, body: body}} when status in 200..299 ->
+          links = extract_links(body, url)
+          {:ok, links}
 
-      {:error, reason} ->
-        {:error, reason}
+        {:ok, %{status: status}} when status in 300..399 ->
+          {:error, {:redirect, status}}
+
+        {:ok, %{status: status}} ->
+          {:error, {:http_error, status}}
+
+        {:error, %{reason: reason}} ->
+          {:error, reason}
+
+        {:error, reason} ->
+          {:error, reason}
+      end
+    rescue
+      e -> {:error, {:exception, Exception.message(e)}}
     end
   end
 
+  defp extract_links(body, _base_url) when not is_binary(body), do: []
   defp extract_links(html, base_url) do
-    html
-    |> Floki.parse_document!()
-    |> Floki.find("a")
-    |> Floki.attribute("href")
-    |> Enum.map(&normalize_url(&1, base_url))
-    |> Enum.filter(&valid_url?/1)
-    |> Enum.uniq()
+    case Floki.parse_document(html) do
+      {:ok, doc} ->
+        doc
+        |> Floki.find("a")
+        |> Floki.attribute("href")
+        |> Enum.map(&normalize_url(&1, base_url))
+        |> Enum.filter(&valid_url?/1)
+        |> Enum.uniq()
+
+      {:error, _} ->
+        []
+    end
   end
 
   defp normalize_url(href, base_url) do

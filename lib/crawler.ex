@@ -11,6 +11,10 @@ defmodule Crawler do
     Crawler.Parallel.fetch_all(urls)
   end
 
+  def fetch_all_supervised(urls, timeout \\ 10_000) do
+    Crawler.WorkerSupervisor.fetch_many_supervised(urls, timeout)
+  end
+
   def crawl(start_url, max_depth \\ 2) do
     Crawler.Coordinator.crawl(start_url, max_depth)
   end
