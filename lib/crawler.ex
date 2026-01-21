@@ -23,6 +23,14 @@ defmodule Crawler do
     Crawler.Polite.crawl(start_url, opts)
   end
 
+  def crawl_for_llm(start_url, opts \\ []) do
+    Crawler.LLM.crawl(start_url, opts)
+  end
+
+  def fetch_full(url) do
+    Crawler.Fetcher.fetch_full(url)
+  end
+
   def receive_result(timeout \\ 5000) do
     receive do
       {:crawl_result, url, result} -> {url, result}

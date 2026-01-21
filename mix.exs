@@ -20,7 +20,8 @@ defmodule Crawler.MixProject do
   defp deps do
     [
       {:req, "~> 0.4"},
-      {:floki, "~> 0.36"}
+      {:floki, "~> 0.36"},
+      {:jason, "~> 1.4"}
     ]
   end
 end

@@ -1,4 +1,39 @@
 defmodule Crawler.Fetcher do
+  def fetch_full(url, opts \\ []) do
+    timeout = Keyword.get(opts, :timeout, 10_000)
+
+    try do
+      case Req.get(url, receive_timeout: timeout) do
+        {:ok, %{status: status, body: body}} when status in 200..299 ->
+          {:ok, doc} = Floki.parse_document(body)
+          title = doc |> Floki.find("title") |> Floki.text() |> String.trim()
+          links = extract_links(body, url)
+
+          {:ok, %{
+            url: url,
+            title: title,
+            body: body,
+            links: links,
+            status: status
+          }}
+
+        {:ok, %{status: status}} when status in 300..399 ->
+          {:error, {:redirect, status}}
+
+        {:ok, %{status: status}} ->
+          {:error, {:http_error, status}}
+
+        {:error, %{reason: reason}} ->
+          {:error, reason}
+
+        {:error, reason} ->
+          {:error, reason}
+      end
+    rescue
+      e -> {:error, {:exception, Exception.message(e)}}
+    end
+  end
+
   def fetch(url, opts \\ []) do
     timeout = Keyword.get(opts, :timeout, 10_000)
 
