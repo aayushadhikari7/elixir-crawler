@@ -7,6 +7,10 @@ defmodule Crawler do
     Crawler.Worker.fetch_async(url, self())
   end
 
+  def fetch_all(urls) do
+    Crawler.Parallel.fetch_all(urls)
+  end
+
   def receive_result(timeout \\ 5000) do
     receive do
       {:crawl_result, url, result} -> {url, result}
