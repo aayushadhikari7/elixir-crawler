@@ -4,3 +4,8 @@
 *.ez
 .elixir_ls/
 erl_crash.dump
+
+# Crawled data output
+/data/
+
+/assets
